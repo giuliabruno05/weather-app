@@ -5,9 +5,11 @@ import Search from "./components/Search.jsx";
 function App() {
   return (
     <>
+    <h1 style={{textAlign:'center', marginTop:'20px'}}>Weather App</h1>
       <div className="App">
-        <h1>Weather App</h1>
-        <Search />
+        <div className="Search">
+          <Search />
+        </div>
       </div>
     </>
   );
