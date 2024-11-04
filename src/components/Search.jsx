@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getWeatherData } from "../api/weatherApi";
+import { getCityCoordinates } from "../api/weatherApi";
 import '../App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -14,8 +15,8 @@ function Search() {
 
     const handleSearch = async () => {
         try {
-            // Per ora, inserisci delle coordinate fisse oppure usa una logica per ottenerle
-            const data = await getWeatherData(35, 139);
+            const {latitude,longitude} = await getCityCoordinates(city);
+            const data = await getWeatherData(latitude,longitude);
             setWeather(data);
         } catch (error) {
             console.error("Errore durante la ricerca meteo", error);
@@ -65,7 +66,9 @@ function Search() {
             {weather && (
                 <div>
                     <h3>Weather in {city}</h3>
-                    <p>Temperature: {weather.hourly.temperature_2m[0]}°C</p>
+                    <p>Temperature: {weather.current_weather.temperature}°C</p>
+                    <p>humidity: {weather.hourly.relative_humidity_2m[0]}%</p>
+                    <p>Speed Wind: {weather.current_weather.windspeed} km/h</p>
                 </div>
             )}
 
@@ -73,7 +76,9 @@ function Search() {
                 <h4>Favorites</h4>
                 <ul>
                     {favorites.map((fav, index) => (
-                        <li key={index}>{fav}</li>
+                        <li key={index}>{fav}
+                        <button className="btn btn-danger" onClick={deleteCity}>Delete</button>
+                        </li>
                     ))}
                 </ul>
             </div>
