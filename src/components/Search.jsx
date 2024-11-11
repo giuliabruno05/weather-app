@@ -5,13 +5,14 @@ import "../App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus } from "@fortawesome/free-solid-svg-icons";
-import { faHeart} from "@fortawesome/free-regular-svg-icons";
+import { faHeart } from "@fortawesome/free-regular-svg-icons";
 function Search() {
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState(null);
   const [favorites, setFavorites] = useState(
     JSON.parse(localStorage.getItem("favorites")) || []
   );
+  const [favoriteWeatherData, setFavoriteWeatherData] = useState({});
   const handleCityChange = (e) => setCity(e.target.value);
   const weatherCodeDescriptions = {
     0: "Clear sky",
@@ -41,13 +42,13 @@ function Search() {
     86: "Heavy snow showers",
     95: "Thunderstorm",
     96: "Thunderstorm with slight hail",
-    99: "Thunderstorm with heavy hail"
+    99: "Thunderstorm with heavy hail",
   };
-  
+
   function getWeatherDescription(weatherCode) {
     return weatherCodeDescriptions[weatherCode] || "Unknown weather condition";
   }
-  
+
   const handleSearch = async () => {
     try {
       const { latitude, longitude } = await getCityCoordinates(city);
@@ -72,8 +73,25 @@ function Search() {
     localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
   };
 
+  // useEffect(() => {
+  //   localStorage.setItem("favorites", JSON.stringify(favorites));
+  // }, [favorites]);
   useEffect(() => {
-    localStorage.setItem("favorites", JSON.stringify(favorites));
+    const fetchFavoriteWeatherData = async () => {
+      const data = {};
+      for (const favCity of favorites) {
+        try {
+          const { latitude, longitude } = await getCityCoordinates(favCity);
+          const weatherData = await getWeatherData(latitude, longitude);
+          data[favCity] = weatherData;
+        } catch (error) {
+          console.error(`Errore nel recuperare i dati per ${favCity}`, error);
+        }
+      }
+      setFavoriteWeatherData(data);
+    };
+
+    fetchFavoriteWeatherData();
   }, [favorites]);
 
   return (
@@ -110,21 +128,53 @@ function Search() {
           <p>Temperature: {weather.current_weather.temperature}°C</p>
           <p>humidity: {weather.hourly.relative_humidity_2m[0]}%</p>
           <p>Speed Wind: {weather.current_weather.windspeed} km/h</p>
-          <p>Weather Conditions: {getWeatherDescription(weather.current_weather.weathercode)}</p>
+          <p>
+            Weather Conditions:{" "}
+            {getWeatherDescription(weather.current_weather.weathercode)}
+          </p>
         </div>
       )}
 
       <div>
         <h4>Favorites</h4>
         <ul>
-          {favorites.map((fav, index) => (
-            <li key={index}>
-              {fav}
+          {favorites.map((favCity) => (
+            <li key={favCity}>
+              <h5>{favCity}</h5>
+              {favoriteWeatherData[favCity] ? (
+                <div className="">
+                  <p>
+                    Temperature:{" "}
+                    {favoriteWeatherData[favCity].current_weather.temperature}°C
+                  </p>
+                  <p>
+                    Humidity:{" "}
+                    {
+                      favoriteWeatherData[favCity].hourly
+                        .relative_humidity_2m[0]
+                    }
+                    %
+                  </p>
+                  <p>
+                    Wind Speed:{" "}
+                    {favoriteWeatherData[favCity].current_weather.windspeed}{" "}
+                    km/h
+                  </p>
+                  <p>
+                    Condition:{" "}
+                    {getWeatherDescription(
+                      favoriteWeatherData[favCity].current_weather.weathercode
+                    )}
+                  </p>
+                </div>
+              ) : (
+                <p>Loading...</p>
+              )}
               <button
                 className="circle_icon"
-                onClick={() => deleteCity(fav)}
+                onClick={() => deleteCity(favCity)}
               >
-                    <FontAwesomeIcon icon={faMinus} />
+                <FontAwesomeIcon icon={faMinus} />
               </button>
             </li>
           ))}
