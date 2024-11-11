@@ -8,3 +8,19 @@
   justify-content: space-around;
   align-items: center;
 }
+.circle_icon{
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: hidden;
+  background-color: red;
+  color: white;
+  margin-left: 5px;
+}
+li{
+  display: flex;
+  align-items: center;
+}
